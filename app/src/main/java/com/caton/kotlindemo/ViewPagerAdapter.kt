@@ -1,0 +1,31 @@
+package com.caton.kotlindemo
+
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentManager
+import androidx.fragment.app.FragmentPagerAdapter
+import com.caton.kotlindemo.fragment.OneFragment
+import com.caton.kotlindemo.fragment.ThreeFragment
+import com.caton.kotlindemo.fragment.TwoFragment
+
+class ViewPagerAdapter(fm: FragmentManager) : FragmentPagerAdapter(fm){
+
+    lateinit var mFragmentList: List<Fragment>
+
+    override fun getItem(position: Int): Fragment {
+        return mFragmentList.get(position)
+    }
+
+    override fun getCount(): Int {
+        return mFragmentList.size
+    }
+
+    override fun getPageTitle(position: Int): CharSequence? {
+        when (mFragmentList.get(position)){
+            is OneFragment->return "One"
+            is TwoFragment-> return "Two"
+            is ThreeFragment->return "Three"
+        }
+
+        return super.getPageTitle(position)
+    }
+}

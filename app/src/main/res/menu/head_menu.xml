@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <group
+        android:id="@+id/set">
+
+        <item
+            android:id="@+id/config"
+            android:title="配置文件"
+            android:icon="@mipmap/ic_launcher"/>
+        <item
+            android:id="@+id/custom"
+            android:title="自定义规则"
+            android:icon="@mipmap/ic_launcher"/>
+        <item
+            android:id="@+id/setting"
+            android:title="设置选项"
+            android:icon="@mipmap/ic_launcher"/>
+    </group>
+    <group
+        android:id="@+id/ab">
+        <item
+            android:id="@+id/question"
+            android:title="常见问题"
+            android:icon="@mipmap/ic_launcher"/>
+        <item
+            android:id="@+id/about"
+            android:title="关于"
+            android:icon="@mipmap/ic_launcher"/>
+    </group>
+</menu>
