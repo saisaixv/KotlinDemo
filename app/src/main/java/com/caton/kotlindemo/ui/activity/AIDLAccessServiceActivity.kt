@@ -7,16 +7,24 @@ import android.content.ServiceConnection
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.IBinder
+import android.util.Log
 import android.view.View
 import android.widget.Toast
 import com.caton.aidlserver.IMyAidlInterface
 import com.caton.aidlserver.People
 import com.caton.kotlindemo.R
+import com.caton.kotlindemo.dao.Student
+import com.caton.kotlindemo.dao.StudentAidlInterface
+import com.caton.kotlindemo.service.ChildProcessService
 import com.caton.kotlindemo.util.Utils
 import kotlinx.android.synthetic.main.activity_aidlaccess_service.*
 
 class AIDLAccessServiceActivity : AppCompatActivity(), ServiceConnection {
+    companion object{
+        var TAG=AIDLAccessServiceActivity.javaClass.name
+    }
     lateinit var iMyAidlInterface: IMyAidlInterface
+    lateinit var studentAidlInterface: StudentAidlInterface
     override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
         iMyAidlInterface = IMyAidlInterface.Stub.asInterface(service)
     }
@@ -89,6 +97,35 @@ class AIDLAccessServiceActivity : AppCompatActivity(), ServiceConnection {
                 iMyAidlInterface.getPeopleInfo3(people),
                 Toast.LENGTH_SHORT
             ).show()
+        })
+
+        btn_start_child.setOnClickListener(View.OnClickListener {
+            startService(Intent(this@AIDLAccessServiceActivity, ChildProcessService().javaClass))
+        })
+        btn_bind_child.setOnClickListener(View.OnClickListener {
+            bindService(
+                Intent(this@AIDLAccessServiceActivity, ChildProcessService().javaClass),
+                object : ServiceConnection {
+                    override fun onServiceDisconnected(name: ComponentName?) {
+                        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+                    }
+
+                    override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
+                        studentAidlInterface=StudentAidlInterface.Stub.asInterface(service)
+                    }
+
+                },
+                Context.BIND_AUTO_CREATE
+            )
+        })
+
+        btn_get.setOnClickListener(View.OnClickListener {
+            var stu=Student("李四")
+            Log.e(TAG,studentAidlInterface.getName(stu))
+        })
+        btn_study.setOnClickListener(View.OnClickListener {
+            var stu=Student("李四")
+            studentAidlInterface.study(stu)
         })
     }
 

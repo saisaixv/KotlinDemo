@@ -26,6 +26,8 @@
         </activity>
         <activity
             android:name=".ui.activity.MainActivity"></activity>
+        <service android:name=".service.ChildProcessService"
+            android:process=".bg"></service>
     </application>
 
 </manifest>

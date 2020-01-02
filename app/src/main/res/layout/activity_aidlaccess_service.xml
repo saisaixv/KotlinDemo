@@ -10,41 +10,81 @@
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"/>
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_weight="1"
+            android:layout_width="0dp"
+            android:layout_height="match_parent">
+            <Button
+                android:id="@+id/btn_start"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="启动服务" />
 
-    <Button
-        android:id="@+id/btn_start"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="启动服务" />
+            <Button
+                android:id="@+id/btn_bind"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="绑定服务" />
 
-    <Button
-        android:id="@+id/btn_bind"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="绑定服务" />
+            <Button
+                android:id="@+id/btn_plus"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="加法运算" />
 
-    <Button
-        android:id="@+id/btn_plus"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="加法运算" />
+            <Button
+                android:id="@+id/btn_getinfo1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="获取详情1" />
 
-    <Button
-        android:id="@+id/btn_getinfo1"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="获取详情1" />
+            <Button
+                android:id="@+id/btn_getinfo2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="获取详情2" />
 
-    <Button
-        android:id="@+id/btn_getinfo2"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="获取详情2" />
+            <Button
+                android:id="@+id/btn_getinfo3"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="获取详情3" />
+        </LinearLayout>
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_weight="1"
+            android:layout_width="0dp"
+            android:layout_height="match_parent">
 
-    <Button
-        android:id="@+id/btn_getinfo3"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="获取详情3" />
+            <Button
+                android:id="@+id/btn_start_child"
+                android:text="启动子进程服务"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+            <Button
+                android:id="@+id/btn_bind_child"
+                android:text="绑定子进程服务"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+            <Button
+                android:id="@+id/btn_get"
+                android:text="获取名称"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+            <Button
+                android:id="@+id/btn_study"
+                android:text="学习"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+
+        </LinearLayout>
+    </LinearLayout>
+
+
 
 </LinearLayout>
