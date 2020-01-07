@@ -40,6 +40,7 @@ class HomeActivity : AppCompatActivity(), RVAdapter.OnItemClickListener {
         demoList.add(Item("AIDL 的使用", AIDLAccessServiceActivity().javaClass.name))
         demoList.add(Item("android job", AndroidJobActivity().javaClass.name))
         demoList.add(Item("WorkManager", WorkManagerActivity().javaClass.name))
+        demoList.add(Item("LocalSocket", LocalSocketActivity().javaClass.name))
 
     }
 

@@ -10,7 +10,8 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".ui.activity.WorkManagerActivity"></activity>
+        <activity android:name=".ui.activity.LocalSocketActivity"></activity>
+        <activity android:name=".ui.activity.WorkManagerActivity" />
         <activity android:name=".ui.activity.AndroidJobActivity" />
         <activity android:name=".ui.activity.AIDLAccessServiceActivity">
 
@@ -33,6 +34,9 @@
         <service
             android:name=".service.ChildProcessService"
             android:process=".bg" />
+        <service
+            android:name=".service.LocalSocketClientService"
+            android:process=".localsocketclient" />
     </application>
 
 </manifest>
