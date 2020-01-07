@@ -36,9 +36,10 @@ class HomeActivity : AppCompatActivity(), RVAdapter.OnItemClickListener {
     private fun initData() {
         demoList = ArrayList()
 
-        demoList.add(Item("TabLayout+ViewPager+Fragment",MainActivity().javaClass.name))
-        demoList.add(Item("AIDL 的使用",AIDLAccessServiceActivity().javaClass.name))
-        demoList.add(Item("android job",AndroidJobActivity().javaClass.name))
+        demoList.add(Item("TabLayout+ViewPager+Fragment", MainActivity().javaClass.name))
+        demoList.add(Item("AIDL 的使用", AIDLAccessServiceActivity().javaClass.name))
+        demoList.add(Item("android job", AndroidJobActivity().javaClass.name))
+        demoList.add(Item("WorkManager", WorkManagerActivity().javaClass.name))
 
     }
 
