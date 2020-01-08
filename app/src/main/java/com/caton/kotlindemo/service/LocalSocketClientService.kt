@@ -6,6 +6,7 @@ import android.net.LocalSocket
 import android.net.LocalSocketAddress
 import android.os.IBinder
 import android.util.Log
+import java.io.File
 import java.lang.Exception
 import java.util.stream.Stream
 
@@ -15,6 +16,7 @@ class LocalSocketClientService : Service(), Runnable {
 
         //这里必须要跟LocalSocketServer中定义的一样
         var SOCKET_NAME = "com.caton.kotlindemo"
+        var PATH = ""
         var TAG = "local-Socket"
     }
 
@@ -25,7 +27,11 @@ class LocalSocketClientService : Service(), Runnable {
     override fun run() {
         //創建localSocket，模拟客户端
         mSocket = LocalSocket()
-        address = LocalSocketAddress(SOCKET_NAME, LocalSocketAddress.Namespace.ABSTRACT)
+        //use ABSTRACT
+//        address = LocalSocketAddress(SOCKET_NAME, LocalSocketAddress.Namespace.ABSTRACT)
+        //use
+        PATH = applicationInfo.dataDir + File.separator + "local_sock"
+        address = LocalSocketAddress(PATH, LocalSocketAddress.Namespace.FILESYSTEM)
 
         while (true) {
             try {
@@ -44,7 +50,7 @@ class LocalSocketClientService : Service(), Runnable {
 
             val out = mSocket.outputStream
             out.write("current index is $count".toByteArray(Charsets.UTF_8))
-            Log.e(TAG,"send msg = "+"current index is $count")
+            Log.e(TAG, "send msg = " + "current index is $count")
             count++
             Thread.sleep(3000)
         }
@@ -63,7 +69,7 @@ class LocalSocketClientService : Service(), Runnable {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
 
 //        if (mThread == null) {
-            mThread = Thread(this@LocalSocketClientService)
+        mThread = Thread(this@LocalSocketClientService)
 //        }
         mThread.start()
         return super.onStartCommand(intent, flags, startId)

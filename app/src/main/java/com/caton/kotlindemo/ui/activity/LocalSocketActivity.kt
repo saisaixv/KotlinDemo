@@ -2,6 +2,8 @@ package com.caton.kotlindemo.ui.activity
 
 import android.content.Intent
 import android.net.LocalServerSocket
+import android.net.LocalSocket
+import android.net.LocalSocketAddress
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.Handler
@@ -11,13 +13,16 @@ import android.view.View
 import com.caton.kotlindemo.R
 import com.caton.kotlindemo.service.LocalSocketClientService
 import kotlinx.android.synthetic.main.activity_local_socket.*
+import java.io.File
 import java.io.InputStream
+import java.nio.file.Path
 import java.util.*
 
 class LocalSocketActivity : AppCompatActivity() {
 
     companion object {
         var SOCKET_NAME = "com.caton.kotlindemo"
+        var PATH = ""
         var TAG = "local-Socket"
     }
 
@@ -59,7 +64,7 @@ class LocalSocketActivity : AppCompatActivity() {
     private fun acceptMsg() {
         //accept 是个阻塞方法，这就是必须要在子线程接收消息的原因
         val socket = mServerSocket.accept()
-        var input:InputStream
+        var input: InputStream
         while (true) {
             var buf = ByteArray(1024)
             input = socket.inputStream
@@ -77,12 +82,20 @@ class LocalSocketActivity : AppCompatActivity() {
         input.close()
         socket.close()
         mServerSocket.close()
-        Log.e(TAG,"close")
+        Log.e(TAG, "close")
     }
 
     private fun createServerSocket() {
 //        if (mServerSocket == null) {
-        mServerSocket = LocalServerSocket(SOCKET_NAME)
+        //use ABSTRACT
+//        mServerSocket = LocalServerSocket(SOCKET_NAME)
+
+        //use FILESYSTEM
+        PATH = applicationInfo.dataDir + File.separator + "local_sock"
+        var socket = LocalSocket()
+        socket.bind(LocalSocketAddress(PATH,LocalSocketAddress.Namespace.FILESYSTEM))
+        mServerSocket = LocalServerSocket(socket.fileDescriptor)
+
 //        }
     }
 }
