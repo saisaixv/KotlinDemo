@@ -12,6 +12,7 @@ import android.view.View
 import android.widget.Toast
 import com.caton.aidlserver.IMyAidlInterface
 import com.caton.aidlserver.People
+import com.caton.kotlindemo.IMyAidlInterfaceCallback
 import com.caton.kotlindemo.R
 import com.caton.kotlindemo.dao.Student
 import com.caton.kotlindemo.dao.StudentAidlInterface
@@ -20,17 +21,33 @@ import com.caton.kotlindemo.util.Utils
 import kotlinx.android.synthetic.main.activity_aidlaccess_service.*
 
 class AIDLAccessServiceActivity : AppCompatActivity(), ServiceConnection {
-    companion object{
-        var TAG=AIDLAccessServiceActivity.javaClass.name
+    companion object {
+        var TAG = AIDLAccessServiceActivity.javaClass.name
     }
+
     lateinit var iMyAidlInterface: IMyAidlInterface
-    lateinit var studentAidlInterface: StudentAidlInterface
+    var studentAidlInterface: StudentAidlInterface? = null
     override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
         iMyAidlInterface = IMyAidlInterface.Stub.asInterface(service)
     }
 
     override fun onServiceDisconnected(name: ComponentName?) {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
+    private val callback by lazy {
+        object : IMyAidlInterfaceCallback.Stub() {
+            override fun stateChanged(state: Int, profileName: String?, msg: String?) {
+                Log.e(TAG, "state = $state,profileName = $profileName,msg = $msg")
+            }
+
+            override fun trafficUpdated(txRate: Long, rxRate: Long, txTotal: Long, rxTotal: Long) {
+                Log.e(
+                    TAG,
+                    "txRate = $txRate,rxRate = $rxRate,txTotal = $txTotal,rxTotal = $rxTotal"
+                )
+            }
+        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -111,7 +128,8 @@ class AIDLAccessServiceActivity : AppCompatActivity(), ServiceConnection {
                     }
 
                     override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
-                        studentAidlInterface=StudentAidlInterface.Stub.asInterface(service)
+                        studentAidlInterface = StudentAidlInterface.Stub.asInterface(service)
+                        studentAidlInterface?.registerCallback(callback)
                     }
 
                 },
@@ -120,12 +138,12 @@ class AIDLAccessServiceActivity : AppCompatActivity(), ServiceConnection {
         })
 
         btn_get.setOnClickListener(View.OnClickListener {
-            var stu=Student("李四")
-            Log.e(TAG,studentAidlInterface.getName(stu))
+            var stu = Student("李四")
+            Log.e(TAG, studentAidlInterface?.getName(stu))
         })
         btn_study.setOnClickListener(View.OnClickListener {
-            var stu=Student("李四")
-            studentAidlInterface.study(stu)
+            var stu = Student("李四")
+            studentAidlInterface?.study(stu)
         })
     }
 
@@ -145,5 +163,15 @@ class AIDLAccessServiceActivity : AppCompatActivity(), ServiceConnection {
         val componentName = ComponentName(serverPkgName, serverPkgName + ".MainActivity")
         intent.setComponent(componentName)
         startActivity(intent)
+    }
+
+    override fun onStart() {
+        super.onStart()
+        studentAidlInterface?.registerCallback(callback)
+    }
+
+    override fun onStop() {
+        super.onStop()
+        studentAidlInterface?.unregisterCallback(callback)
     }
 }
