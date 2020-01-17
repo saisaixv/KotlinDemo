@@ -2,20 +2,23 @@ package com.caton.kotlindemo.ui.activity
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.os.Environment
 import android.util.Log
 import com.caton.kotlindemo.R
 import com.caton.kotlindemo.nio.ServerConnect
 import kotlinx.android.synthetic.main.activity_nio.*
-import java.io.BufferedInputStream
-import java.io.FileInputStream
-import java.io.InputStream
-import java.io.RandomAccessFile
+import java.io.*
 import java.lang.Exception
 import java.net.InetSocketAddress
 import java.net.ServerSocket
 import java.nio.ByteBuffer
+import java.nio.channels.DatagramChannel
 import java.nio.channels.FileChannel
+import java.nio.channels.Pipe
 import java.nio.channels.SocketChannel
+import java.security.spec.ECField
+import java.util.concurrent.Callable
+import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import kotlin.random.Random
 
@@ -31,7 +34,7 @@ class NIOActivity : AppCompatActivity() {
         }
         btn_start_server.setOnClickListener {
             Thread(Runnable {
-//                server()
+                //                server()
                 ServerConnect.selector()
             }).start()
         }
@@ -50,13 +53,31 @@ class NIOActivity : AppCompatActivity() {
                 client("client-3")
             }).start()
         }
+        btn_get_gernal.setOnClickListener {
+            useTransferFrom()
+        }
+        btn_use_pipe.setOnClickListener {
+            UsePipe()
+        }
+        btn_udp_bind.setOnClickListener {
+            Thread(Runnable {
+                DatagramChannelReceive()
+            }).start()
+
+        }
+        btn_udp_send.setOnClickListener {
+            Thread(Runnable {
+                DatagramChannelSend()
+            }).start()
+
+        }
     }
 
     companion object {
-        var TAG =NIOActivity::class.java.simpleName
+        var TAG = NIOActivity::class.java.simpleName
     }
 
-    fun client(name:String) {
+    fun client(name: String) {
         val buffer = ByteBuffer.allocate(1024)
         var socketChannel: SocketChannel? = null
         try {
@@ -97,7 +118,7 @@ class NIOActivity : AppCompatActivity() {
         var input: InputStream? = null
         try {
             serverSocket = ServerSocket(8080)
-            var recvMsgSize :Int
+            var recvMsgSize: Int
             var recvBuf = ByteArray(1024)
             while (true) {
                 val clntSocket = serverSocket.accept()
@@ -132,56 +153,244 @@ class NIOActivity : AppCompatActivity() {
         }
     }
 
+    //FileChannel的transferFrom()方法可以将数据从源通道传输到FileChannel中
+    fun useTransferFrom(): Unit {
+        var fromFile: RandomAccessFile? = null
+        var toFile: RandomAccessFile? = null
+        try {
+            fromFile = RandomAccessFile(
+                getExternalFilesDir(Environment.MEDIA_MOUNTED)!!.path + "/a.txt",
+                "rw"
+            )
+            var fromChannel = fromFile.channel
+            toFile = RandomAccessFile(
+                getExternalFilesDir(Environment.MEDIA_MOUNTED)!!.path + "/toFile.txt",
+                "rw"
+            )
+            var toChannel = toFile.channel
+            var position = 0L
+            var step = 1024L
+            var count = fromChannel.size()
+            Log.e(TAG, "count = " + count)
+            while (position < count) {
+                toChannel.transferFrom(fromChannel, position, step)
+                position = step + 1
+                step += position
+            }
+
+        } catch (e: Exception) {
+            e.printStackTrace()
+        } finally {
+            try {
+                if (fromFile != null) {
+                    fromFile.close()
+                }
+                if (toFile != null) {
+                    toFile.close()
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+
+    //transferTo()方法将数据从FileChannel传输到其他的channel中
+    fun useTransferTo(): Unit {
+        var fromFile: RandomAccessFile? = null
+        var toFile: RandomAccessFile? = null
+        try {
+            val externalFile = File(Environment.getExternalStorageDirectory().absolutePath)
+            val listFiles = externalFile.listFiles()
+            fromFile = RandomAccessFile(
+                getExternalFilesDir(Environment.MEDIA_MOUNTED)!!.path + "/a.txt",
+                "rw"
+            )
+            var fromChannel = fromFile.channel
+            toFile = RandomAccessFile(
+                getExternalFilesDir(Environment.MEDIA_MOUNTED)!!.path + "/toFile.txt",
+                "rw"
+            )
+            var toChannel = toFile.channel
+            var position = 0L
+            var count = fromChannel.size()
+            Log.e(TAG, "count = " + count)
+            fromChannel.transferTo(position, count, toChannel)
+        } catch (e: Exception) {
+            e.printStackTrace()
+        } finally {
+            try {
+                if (fromFile != null) {
+                    fromFile.close()
+                }
+                if (toFile != null) {
+                    toFile.close()
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+
+    fun UsePipe(): Unit {
+
+        var pipe: Pipe? = null
+        val exec = Executors.newFixedThreadPool(2)
+        try {
+            pipe = Pipe.open()
+            var pipeTemp = pipe
+            exec.submit(Callable {
+                //向通道中写数据
+                var sinkChannel = pipeTemp.sink()
+                while (true) {
+                    TimeUnit.SECONDS.sleep(1)
+                    var newData = "Pipe Test At Time " + System.currentTimeMillis()
+                    val buf = ByteBuffer.allocate(1024)
+                    buf.clear()
+                    buf.put(newData.toByteArray())
+                    buf.flip()
+                    while (buf.hasRemaining()) {
+                        Log.e(TAG, buf.toString())
+                        sinkChannel.write(buf)
+                    }
+                }
+            })
+
+            exec.submit(Callable {
+                var sourceChannel = pipeTemp.source()
+                while (true) {
+                    TimeUnit.SECONDS.sleep(1)
+                    var buf = ByteBuffer.allocate(1024)
+                    buf.clear()
+                    var bytesRead = sourceChannel.read(buf)
+                    Log.e(TAG, "bytesRead = " + bytesRead)
+                    while (bytesRead > 0) {
+                        buf.flip()
+                        var b = ByteArray(bytesRead)
+                        var i = 0
+                        while (buf.hasRemaining()) {
+                            b[i] = buf.get()
+//                            Log.e(TAG, String.format("%X",b[i]))
+                            i++
+                        }
+                        val s = String(b)
+                        Log.e(TAG, "=================||" + s)
+                        bytesRead = sourceChannel.read(buf)
+                    }
+                }
+            })
+
+        } catch (e: Exception) {
+            e.printStackTrace()
+        } finally {
+            exec.shutdown()
+        }
+    }
+
+    fun DatagramChannelReceive(): Unit {
+        var channel: DatagramChannel? = null
+        try {
+            channel = DatagramChannel.open()
+            channel.socket().bind(InetSocketAddress(8888))
+            val buf = ByteBuffer.allocate(1024)
+            while (true) {
+                buf.clear()
+                channel.receive(buf)
+                buf.flip()
+                while (buf.hasRemaining()) {
+                    Log.e(TAG, buf.get()?.toChar().toString())
+                }
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        } finally {
+            try {
+                if (channel != null) {
+                    channel.close()
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+
+    fun DatagramChannelSend(): Unit {
+
+        var channel: DatagramChannel? = null
+        try {
+            channel = DatagramChannel.open()
+            var info = "I'm the Sender!"
+            val buf = ByteBuffer.allocate(1024)
+            buf.clear()
+            buf.put(info.toByteArray())
+            buf.flip()
+
+            val bytesSend = channel.send(buf, InetSocketAddress("127.0.0.1", 8888))
+            Log.e(TAG, "bytesSend = " + bytesSend)
+
+        } catch (e: Exception) {
+            e.printStackTrace()
+        } finally {
+            try {
+                if (channel != null) {
+                    channel.close()
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+
+
     fun ReadFileUseByteBuffer(): Unit {
-        var aFile:RandomAccessFile?=null
-        var fc:FileChannel?=null
+        var aFile: RandomAccessFile? = null
+        var fc: FileChannel? = null
 
         try {
-            aFile= RandomAccessFile("src/aaa/txt","rw")
+            aFile = RandomAccessFile("src/aaa/txt", "rw")
             val fc = aFile.channel
             val timeBegin = System.currentTimeMillis()
             val buff = ByteBuffer.allocate(aFile.length().toInt())
             buff.clear()
             fc.read(buff)
-            var timeEnd=System.currentTimeMillis()
-            Log.e(TAG,"Read time: "+(timeEnd-timeBegin)+"ms")
-        }catch (e:Exception){
+            var timeEnd = System.currentTimeMillis()
+            Log.e(TAG, "Read time: " + (timeEnd - timeBegin) + "ms")
+        } catch (e: Exception) {
             e.printStackTrace()
-        }finally {
+        } finally {
             try {
-                if(aFile!=null){
+                if (aFile != null) {
                     aFile.close()
                 }
-                if(fc!=null){
+                if (fc != null) {
                     fc.close()
                 }
-            }catch (e:Exception){
+            } catch (e: Exception) {
                 e.printStackTrace()
             }
         }
     }
 
     fun ReadFileUseMappedByteBuffer(): Unit {
-        var aFile:RandomAccessFile?=null
-        var fc:FileChannel?=null
+        var aFile: RandomAccessFile? = null
+        var fc: FileChannel? = null
         try {
-            aFile= RandomAccessFile("src/aaa.txt","rw")
-            fc=aFile.channel
-            var timeBegin=System.currentTimeMillis()
-            var mbb=fc.map(FileChannel.MapMode.READ_ONLY,0,aFile.length())
-            var timeEnd=System.currentTimeMillis()
-            Log.e(TAG,"Read time: "+(timeEnd-timeBegin)+"ms")
-        }catch (e:Exception){
+            aFile = RandomAccessFile("src/aaa.txt", "rw")
+            fc = aFile.channel
+            var timeBegin = System.currentTimeMillis()
+            var mbb = fc.map(FileChannel.MapMode.READ_ONLY, 0, aFile.length())
+            var timeEnd = System.currentTimeMillis()
+            Log.e(TAG, "Read time: " + (timeEnd - timeBegin) + "ms")
+        } catch (e: Exception) {
             e.printStackTrace()
-        }finally {
-            try{
-                if(aFile!=null){
+        } finally {
+            try {
+                if (aFile != null) {
                     aFile.close()
                 }
-                if(fc!=null){
+                if (fc != null) {
                     fc.close()
                 }
-            }catch (e:Exception){
+            } catch (e: Exception) {
                 e.printStackTrace()
             }
         }
@@ -189,7 +398,7 @@ class NIOActivity : AppCompatActivity() {
 
     //（NIO）使用RandomAccessFile进行操作，
     // 当然也可以通过FileInputStream.getChannel()进行操作
-    fun ReadFIleByNIO() {
+    fun ReadFileByNIO() {
         var aFile: RandomAccessFile? = null
         try {
             aFile = RandomAccessFile("src/aaa/txt", "rw")
@@ -222,7 +431,7 @@ class NIOActivity : AppCompatActivity() {
         }
     }
 
-    //（传统IO）使用FIleInputStream读取文件内容
+    //（传统IO）使用FileInputStream读取文件内容
     fun ReadFileByFileInputStream(): Unit {
         var input: InputStream? = null
         try {
@@ -246,5 +455,50 @@ class NIOActivity : AppCompatActivity() {
 
         }
 
+    }
+
+    fun GeneralFileWithByteBuffer(fileName: String, size: Long): Unit {
+        var fos: FileOutputStream? = null
+        var output: FileChannel? = null
+        try {
+            fos = FileOutputStream(fileName)
+            output = fos.channel
+            output.write(ByteBuffer.allocate(1), size - 1)
+        } catch (e: Exception) {
+            e.printStackTrace()
+        } finally {
+            try {
+                if (output != null) {
+                    output.close()
+                }
+                if (fos != null) {
+                    fos.close()
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+
+    fun GeneralFileWithRandomAccessFile(fileName: String, size: Long): Unit {
+        var start = System.currentTimeMillis()
+        var r: RandomAccessFile? = null
+        try {
+            r = RandomAccessFile(fileName, "rw")
+            r.setLength(size)
+        } catch (e: Exception) {
+            e.printStackTrace()
+        } finally {
+            if (r != null) {
+                try {
+                    r.close()
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+            }
+        }
+        var end = System.currentTimeMillis()
+        var use = end - start
+        Log.e(TAG, "finish! use time is $use ms.")
     }
 }
