@@ -42,6 +42,7 @@ class HomeActivity : AppCompatActivity(), RVAdapter.OnItemClickListener {
         demoList.add(Item("WorkManager", WorkManagerActivity().javaClass.name))
         demoList.add(Item("LocalSocket", LocalSocketActivity().javaClass.name))
         demoList.add(Item("NIO", NIOActivity().javaClass.name))
+        demoList.add(Item("BackupAgent", BackUpAgentActivity().javaClass.name))
 
     }
 

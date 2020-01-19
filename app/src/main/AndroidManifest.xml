@@ -5,27 +5,33 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
-
-    <!--  表示app使用了什么功能，
+    <!--
+  表示app使用了什么功能，
         false表示设备没有这个功能也能使用这个app，
         true表示设备有这个功能才能使用这个app.
         uses-feature 只起到指示性的作用， 并不是强制检测。
             ——即使程序不具有uses-feature指定的软硬件资源，也不影响启动，只是会影响该功能的正常使用。
             就如给应用贴上一个标签，方便了解app的资源需求与分类。
-            GooglePlay 会根据uses-feature的声明 过滤、分类app。-->
+            GooglePlay 会根据uses-feature的声明 过滤、分类app。
+    -->
     <uses-feature
         android:name="android.hardware.camera"
-        android:required="false"/>
+        android:required="false" />
 
     <application
         android:name=".App"
         android:allowBackup="true"
+        android:backupAgent=".util.MyBackupAgent"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".ui.activity.NIOActivity"></activity>
+        <meta-data
+            android:name="com.google.android.backup.api_key"
+            android:value="AEdPqrEAAAAI6T92PTo6Q9m3vyJ5WJXrDLVEtLIeLYDqNaO6kA" />
+        <activity android:name=".ui.activity.BackUpAgentActivity"></activity>
+        <activity android:name=".ui.activity.NIOActivity" />
         <activity android:name=".ui.activity.LocalSocketActivity" />
         <activity android:name=".ui.activity.WorkManagerActivity" />
         <activity android:name=".ui.activity.AndroidJobActivity" />
